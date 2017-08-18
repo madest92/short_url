@@ -1,0 +1,7 @@
+---
+# tasks file for haproxy
+- include: packages.yml
+  tags: packages
+
+- include: configs.yml
+  tags: configuration

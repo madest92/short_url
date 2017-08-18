@@ -1,0 +1,9 @@
+---
+- name: copy configs
+  template: src=haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg owner=root group=root mode=0644
+  notify: "reload haproxy"
+
+- name: copy cert
+  copy: src=cert.pem dest=/etc/ssl/kudago.pem owner=root group=root mode=0644
+  notify: "reload haproxy"
+

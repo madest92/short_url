@@ -1,0 +1,18 @@
+---
+- stat: path={{ mysql_datadir }}
+  register: mysql_stat_data_dir
+
+- name: install db
+  command: /usr/bin/mysql_install_db --user mysql --datadir {{ mysql_datadir }}
+  when: mysql_stat_data_dir.stat.exists == False
+  register: mysql_install_db
+
+- name: copy my.cnf
+  template: src=my.cnf.j2 dest=/etc/mysql/my.cnf mode=0644 owner=root group=root
+  notify: "restart mysql"
+
+- include: first_node.yml
+  when: inventory_hostname == mysql_first_node
+
+- name: copy .my.cnf
+  template: src=client_my.cnf.j2 dest=/root/.my.cnf mode=0600 owner=root group=root

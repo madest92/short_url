@@ -1,0 +1,4 @@
+---
+# handlers file for short
+- name: restart webserver
+  command: /etc/init.d/shorturl restart

@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import sys
+import random
+import MySQLdb
+import validators
+
+from basehash import base
+from string import ascii_lowercase
+from base64 import urlsafe_b64decode
+from logging import getLogger
+from logging.handlers import RotatingFileHandler
+from flask import Flask, request, render_template, redirect, current_app
+
+
+HOST = '{{ short_server_host }}'
+SITE_URL = "https://{}/".format(HOST)
+HASH_LEN = {{ short_hash_len }}
+TEMPLATE = 'short.html'
+HASH_ALPHABET = '{{ short_hash_alphabet }}'
+
+app = Flask(__name__, template_folder='/var/run')
+
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    if request.method == 'GET':
+        return render_template(TEMPLATE)
+    url = request.form.get('url')
+    if not validators.url(request.form.get('url')):
+        error = "Invalid link '{}'".format(url)
+        return render_template(TEMPLATE, error=error)
+    try:
+        short_url = get_short_url(url)
+    except Exception as e:
+        return render_template(TEMPLATE, error=e)
+    return render_template(TEMPLATE, short_url=SITE_URL + short_url)
+
+
+@app.route('/<short_url>')
+def redirect_short_url(short_url):
+    if len(short_url) != HASH_LEN:
+        error = "URL len is`n {}".format(HASH_LEN)
+        return render_template(TEMPLATE, error=error)
+    decoded = base(HASH_ALPHABET, HASH_LEN).unhash(short_url)
+    try:
+        db = mysql_connect()
+        cursor = db.cursor()
+        cursor.execute('SELECT url FROM {{ mysql_shorturl_table }} WHERE id=%s', (decoded,))
+        res = cursor.fetchone()
+    except Exception as e:
+        return render_template(TEMPLATE, error=e)
+    db.close()
+    if res is None:
+        error="No found URL by {}".format(short_url)
+        return render_template(TEMPLATE, error=error)
+    return redirect(res[0])
+
+
+def mysql_connect():
+    return MySQLdb.connect(host=HOST, port={{ mysql_port }}, user='{{ mysql_shorturl_user }}', passwd='{{ mysql_shorturl_password }}', db='{{ mysql_shorturl_db }}')
+
+
+def get_short_url(url):
+    tmp_hash = ''.join(random.choice(ascii_lowercase) for _ in range(10))
+    db = mysql_connect()
+    cursor = db.cursor()
+    cursor.execute("SELECT hash FROM {{ mysql_shorturl_table }} WHERE md5_url = MD5(%s) AND url = %s", (url, url,))
+    res = cursor.fetchone()
+    if res is not None:
+        db.close()
+        return res[0]
+    cursor.execute("INSERT INTO {{ mysql_shorturl_table }}(md5_url, url, hash) VALUES(MD5(%s), %s, %s)", (url, url, tmp_hash))
+    last_id = cursor.lastrowid
+    short_url = base(HASH_ALPHABET, HASH_LEN).hash(last_id)
+    db.commit()
+    cursor.execute("UPDATE {{ mysql_shorturl_table }} SET hash=%s WHERE id=%s", (short_url, last_id))
+    db.commit()
+    db.close()
+    return short_url
+
+
+if __name__ == '__main__':
+    logfile = '/var/log/shorturl.log'
+    if len(sys.argv) > 1 and ':' in sys.argv[1]:
+        host, port = sys.argv[1].split(':')
+        if len(sys.argv) == 3:
+            logfile = sys.argv[2]
+    else:
+        print("Usage: HOST:PORT [LOGFILE]")
+        sys.exit(1)
+
+    logger = getLogger('werkzeug')
+    handler = RotatingFileHandler(logfile, maxBytes=1000000, backupCount=5)
+    logger.addHandler(handler)
+    app.run(host=host, port=port)

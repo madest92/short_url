@@ -1,0 +1,6 @@
+---
+- name: install packages
+  apt:
+    name: percona-xtradb-cluster-server
+    state: present
+  notify: "restart mysql"

@@ -1,0 +1,10 @@
+---
+# defaults file for mysql
+mysql_root_password: r00tpassw0rd
+mysql_datadir: /var/lib/mysql
+
+mysql_sst_user: sstshort
+mysql_sst_password: shortshort
+
+mysql_memory_ratio: 0.8
+mysql_memory_limit: "{{ ansible_memtotal_mb * mysql_memory_ratio|float * 1024 * 1024 }}"

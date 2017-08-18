@@ -1,0 +1,8 @@
+---
+# defaults file for haproxy
+proxy_stats_login: kudago
+proxy_stats_password: adminadmin
+
+proxy_check_time: 1s
+proxy_count_fall: 1
+proxy_count_rise: 2

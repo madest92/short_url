@@ -1,0 +1,12 @@
+ansible_python_interpreter: /usr/bin/python3
+
+short_server_host: short.kudago.com
+short_server_ip: "{{ inner_ip }}"
+short_server_port: 4443
+
+mysql_first_node: db2
+mysql_port: 3306
+mysql_shorturl_user: shorturl
+mysql_shorturl_password: sh0rtpass
+mysql_shorturl_db: shorturl
+mysql_shorturl_table: urls

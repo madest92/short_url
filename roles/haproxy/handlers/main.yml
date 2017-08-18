@@ -1,0 +1,9 @@
+---
+# handlers file for haproxy
+- name: check config
+  command: haproxy -c -f /etc/haproxy/haproxy.cfg
+  listen: "reload haproxy"
+
+- name: reload haproxy
+  service: name=haproxy state=reloaded
+  listen: "reload haproxy"

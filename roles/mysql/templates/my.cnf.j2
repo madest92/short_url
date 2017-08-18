@@ -1,0 +1,69 @@
+################################################################################
+# Common
+################################################################################
+[mysqld]
+bind      = {{ inner_ip }}
+port      = {{ mysql_port }}
+socket    = /var/run/mysqld/mysqld.sock
+datadir   = {{ mysql_datadir }}
+basedir   = /usr
+user      = mysql
+log_error = error.log
+
+binlog_format          = ROW
+default_storage_engine = InnoDB
+
+query_cache_type = 1
+query_cache_size = {{ 512 if ansible_memtotal_mb > 80000 else 256 }}M
+
+
+################################################################################
+# InnoDB
+################################################################################
+innodb_file_format = 'Barracuda'
+
+# locks
+innodb_autoinc_lock_mode       = 2
+innodb_locks_unsafe_for_binlog = 1
+
+# log files
+innodb_log_file_size      = {{ 512 if ansible_memtotal_mb > 80000 else 256 }}M
+innodb_log_files_in_group = {{ 4 if ansible_memtotal_mb > 80000 else 2 }}
+
+# buffer pools
+innodb_buffer_pool_instances = {{ 64 if ansible_memtotal_mb > 80000 else 32 }}
+innodb_buffer_pool_size      = {{ (0.8 * ansible_memtotal_mb) | int }}
+innodb_log_buffer_size       = {{ 512 if ansible_memtotal_mb > 80000 else 256 }}M
+innodb_sort_buffer_size      = 64M
+
+# I/O optimization
+innodb_random_read_ahead        = ON
+innodb_read_ahead_threshold     = 32
+innodb_flush_log_at_trx_commit  = 2
+innodb_flush_method             = O_DIRECT
+
+
+################################################################################
+# Wsrep
+################################################################################
+wsrep_cluster_name     = shorturl
+wsrep_node_name        = {{ inventory_hostname }}
+wsrep_node_address     = {{ inventory_hostname }}
+wsrep_provider_options = "gmcast.listen_addr=tcp://{{ inner_ip }}:4567; "
+wsrep_cluster_address  = gcomm://{% for host in groups['dbs'] %}{{ host }},{% endfor %}
+
+
+wsrep_slave_threads = {{ ansible_processor_count }}
+wsrep_sst_method    = xtrabackup-v2
+wsrep_sst_auth      = {{ mysql_sst_user }}:{{ mysql_sst_password }}
+
+
+################################################################################
+# client settings
+################################################################################
+[mysqld_safe]
+wsrep_provider = /usr/lib/libgalera_smm.so
+
+[client]
+port   = {{ mysql_port }}
+socket = /var/run/mysqld/mysqld.sock

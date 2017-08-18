@@ -1,0 +1,19 @@
+---
+- name: create webserver user
+  user: name={{ short_script_user }} createhome=no home=/nonexistent system=yes shell=/bin/false
+  when: short_script_user != 'root'
+
+- name: create log
+  file: path=/var/log/shorturl.log state=touch mode=0770 owner={{ short_script_user }} group=root
+
+- name: copy html file
+  copy: src=short.html dest=/var/run/  mode=0770 owner={{ short_script_user }} group=root
+  notify: restart webserver
+
+- name: copy webserver script
+  template: src=webserver-shorturl.py.j2 dest={{ short_script_path }} mode=0700 owner={{ short_script_user }} group=root
+  notify: restart webserver
+
+- name: copy init.d script
+  template: src=shorturl.j2 dest=/etc/init.d/{{ short_script_name }} mode=0755 owner=root group=root
+  notify: restart webserver

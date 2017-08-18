@@ -1,0 +1,14 @@
+---
+- hosts: webservers
+  serial: 1
+  roles:
+   - roles/shorturl
+
+- hosts: mysql_first_node:dbs
+  roles:
+   - roles/mysql
+
+- hosts: proxys
+  serial: 1
+  roles:
+    - roles/haproxy

@@ -1,0 +1,20 @@
+---
+- name: check syntax
+  shell: mysqld --verbose --help 1>/dev/null
+  run_once: True
+  delegate_to: "{{ item }}"
+  with_items: "{{ play_hosts }}"
+  listen: "restart mysql"
+
+- name: restart other node
+  service: name=mysql state=restarted
+  run_once: True
+  delegate_to: "{{ item }}"
+  when: "item != mysql_first_node"
+  with_items: "{{ play_hosts }}"
+  listen: "restart mysql"
+
+- name: restart first node
+  service: name=mysql state=restarted
+  when: inventory_hostname == mysql_first_node
+  listen: "restart mysql"

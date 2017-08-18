@@ -1,0 +1,6 @@
+---
+- name: install packages
+  apt:
+    name: haproxy
+    state: present
+  notify: "reload haproxy"

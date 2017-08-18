@@ -1,0 +1,29 @@
+---
+- name: start first node in cluster
+  command: /etc/init.d/mysql {{ item }}
+  when: mysql_install_db.changed
+  with_items:
+   - "stop"
+   - "bootstrap-pxc"
+
+- name: create database/table
+  command:  >
+    mysql -e "CREATE DATABASE IF NOT EXISTS {{ mysql_shorturl_db }}; CREATE TABLE IF NOT EXISTS
+              {{ mysql_shorturl_db }}.{{ mysql_shorturl_table }}(`id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+              `md5_url` varchar(32) NOT NULL, `url` varchar(1000) NOT NULL,
+              `hash` varchar(8) NOT NULL UNIQUE) ENGINE=INNODB,CHARSET=UTF8;"
+
+- name: create mysql user sst
+  command: >
+    mysql -e "GRANT RELOAD, LOCK TABLES, PROCESS, REPLICATION CLIENT ON *.*
+              TO '{{ mysql_sst_user }}'@'localhost' IDENTIFIED BY '{{ mysql_sst_password }}'"
+
+- name: create mysql user proxy
+  command: >
+    mysql -e "GRANT USAGE ON *.* TO 'haproxy'@'{{ item }}'"
+  with_items: "{{ groups['proxys'] }}"
+
+- name: create mysql user
+  command:  >
+    mysql -e "GRANT ALL ON  *.* TO 'root'@'localhost' IDENTIFIED BY '{{ mysql_root_password }}';
+              GRANT SELECT, INSERT, UPDATE ON shorturl.urls TO '{{ mysql_shorturl_user }}'@'%' IDENTIFIED BY '{{ mysql_shorturl_password }}'"

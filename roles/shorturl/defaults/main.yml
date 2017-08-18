@@ -1,0 +1,21 @@
+---
+# defaults file for short
+short_packeges:
+  - python3
+  - python3-pip
+  - libmysqlclient-dev
+
+short_pip_modules:
+  - validators
+  - mysqlclient
+  - Flask
+  - basehash
+
+short_script_user: webshort
+short_script_name: shorturl
+short_script_path: /usr/local/sbin/webserver-shorturl.py
+short_server_ip: "{{ inner_ip }}"
+short_debug: True
+
+short_hash_len: 6
+short_hash_alphabet: "Es8hFJD7oLR2QjpNdlBm3qcZtWUzaM19SubOIv4XHix5KfV0PwrCynge6TGYkA"

@@ -24,6 +24,33 @@ db2 inner_ip=192.168.0.12
 db3 inner_ip=192.168.0.13
 ```
 
+## Дефолтные переменные
+### haproxy
+```
+proxy_stats_login: kudago          - логин для статистики haproxy
+proxy_stats_password: adminadmin   - пароль для статистики haproxy
+proxy_check_time: 1s               - частота проверки доступности сервиса
+proxy_count_fall: 1                - количество ошибок, после которых сервер считается недоступным
+proxy_count_rise: 2                - количество проверек, прежде чем сервер считается доступным
+```
+### mysql
+```
+mysql_root_password: r00tpassw0rd  - пароль для пользователя root
+mysql_datadir: /var/lib/mysql      - путь к директории mysql
+mysql_sst_user: sstshort           - логин для авторизации кластера
+mysql_sst_password: shortshort     - пароль для авторизации кластера
+mysql_memory_ratio: 0.8            - максимальное количество памяти доступная mysql(1 - 100%)
+```
+### webserver
+```
+short_script_user: webshort        - пользователь из под которого работает сервис
+short_script_name: shorturl        - имя init.d скрипта
+short_script_path: /usr/local/sbin/webserver-shorturl.py  - путь к скрипту
+short_server_ip: "{{ inner_ip }}"  - ip адрес на котором слушает вебсервер
+short_debug: True                  - включаем дебаг
+short_hash_len: 6                  - длина короткой ссылки(при 6 выдает 56800235583 уникальных ссылок)
+short_hash_alphabet: "Es8hFJD7oLR2QjpNdlBm3qcZtWUzaM19SubOIv4XHix5KfV0PwrCynge6TGYkA"  - перемешанный алфавит
+```
 
 ## Как добавить новый сервер
 1. Обновляем inventory hosts, добавив сервер в одну из групп(webservers/proxys/dbs)

@@ -25,6 +25,20 @@ db3 inner_ip=192.168.0.13
 ```
 
 ## Дефолтные переменные
+Общие переменные для всех ролей настраиваются в файле *group_vars/all*
+```
+short_server_host: short.kudago.com - доменное имя вебсервера
+short_server_ip: "{{ inner_ip }}"   - ip адрес, на котором висит сервис
+short_server_port: 4443             - порт, на котором висит сервис
+mysql_first_node: db2               - имя мастер сервера в кластере
+mysql_port: 3306                    - порт, который слушает mysql
+mysql_shorturl_user: shorturl       - логин
+mysql_shorturl_password: sh0rtpass  - пароль
+mysql_shorturl_db: shorturl         - имя базы коротких ссылок
+mysql_shorturl_table: urls          - имя таблицы
+```
+
+Остальные в файле *defaults/main.yml* для каждой роли:
 ### haproxy
 ```
 proxy_stats_login: kudago          - логин для статистики haproxy
